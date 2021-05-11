@@ -1,0 +1,5 @@
+*.csv
+*.json
+*.pickle
+/config.json
+/credentials-sheets.json
