@@ -1,6 +1,7 @@
 import csv
+
 import ezsheets
-import os
+
 
 def sheetinit():
     ss = ezsheets.Spreadsheet('1iA6Wh31JKgqBVflHOb-gidD91Ru6D43ntzGqHpdLGOI')
@@ -10,6 +11,7 @@ def sheetinit():
     dataList = list(sheetdatacsv)
     dataList.pop(0)
     return dataList
+
 
 def courseinit():
     ss = ezsheets.Spreadsheet('1iA6Wh31JKgqBVflHOb-gidD91Ru6D43ntzGqHpdLGOI')
