@@ -1,15 +1,17 @@
 # all imports
-from slack_bolt import App  # imports the app from slack that we use to connect
-from datetime import date  # imports date formatting automatically
-import sheets  # sheets.py, our file that formats our sheet data
-import os  # os functions to launch server
-import json  # json package used to load, modify, and dump our json
 import copy  # copy to create deep copies of our pages so that the base files never change
+import json  # json package used to load, modify, and dump our json
+from datetime import date  # imports date formatting automatically
+
+from slack_bolt import App  # imports the app from slack that we use to connect
+
+import sheets  # sheets.py, our file that formats our sheet data
+
+import re  # the retgex stuff
 
 # json credentials
 config = json.load(open('config.json'))
 # datetime variables
-import re
 
 t = date.today()
 timestamp = t.strftime("%B %d, %Y")
@@ -82,21 +84,18 @@ def courseFilters(courselist):  # returns nested list => creates a list for ever
     return courseStorage
 
 
-def courseMatch(student,
-                courselist):  # returns student.course as INT => sets student course to the index of the course value
+def courseMatch(student, courselist):  # returns student.course as INTEGER => sets student course to the index of the course value
     for c in courselist:
         if student.course == c:
             student.course = courselist.index(c)
     return student.course
 
 
-def appendStorage(student,
-                  courseStorage):  # no return => adds student to the course-specific list index
+def appendStorage(student, courseStorage):  # no return => adds student to the course-specific list index
     courseStorage[student.course].append(student)
 
 
-def studentCreate(students,
-                  courseStorage):  # no return => creates the student object for all students
+def studentCreate(students, courseStorage):  # no return => creates the student object for all students
     courselist = coursecreate(courses)
     courseStorage = courseFilters(courselist)
     for i in students:
@@ -114,8 +113,7 @@ def studentBlocks(courseStorage):  # no return => adds student blocks to courses
     return courseStorage
 
 
-def runStudents(courses,
-                students):  # no return=> runs all student-related functions to put them in the studentcopy json array
+def runStudents(courses, students):  # no return=> runs all student-related functions to put them in the studentcopy json array
     courselist = coursecreate(courses)
     courseStorage = courseFilters(courselist)
     courseStorage = studentCreate(students, courseStorage)
@@ -136,22 +134,25 @@ def create_modal(ack, shortcut, client):
     ack()  # acknowledge request and return http 200, code lasts for 3 seconds so we need to put something placeholder
     res = client.views_open(  # default view on open
         trigger_id=shortcut["trigger_id"],  # id's needed to respond at the right location
-        view={  # view is what slack displays, sent in json
-            "type": "modal",
+        view={
             "title": {
                 "type": "plain_text",
-                "text": "Workplace check-in"
+                "text": "CFC Scheduler"
             },
-            "close": {
-                "type": "plain_text",
-                "text": "Cancel"
-            },
+            "type": "modal",
             "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Loading :yarn:"
+                    }
+                },
                 {
                     "type": "section",
                     "text": {
-                        "type": "plain_text",
-                        "text": ":man-biking: Now loading..."
+                        "type": "mrkdwn",
+                        "text": "Please wait for the modal to load!"
                     }
                 }
             ]
