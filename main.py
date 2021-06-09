@@ -7,7 +7,7 @@ from slack_bolt import App  # imports the app from slack that we use to connect
 
 import sheets  # sheets.py, our file that formats our sheet data
 
-import re  # the retgex stuff
+import re  # the regex stuff
 
 # json credentials
 config = json.load(open('config.json'))
@@ -38,7 +38,7 @@ class Applicant:
         self.student = student  # 9th index
         self.numofstudents = numofstudents  # 8th index
         self.hand = hand  # 14th index
-        self.course = re.sub(r" ?\([^)]+\)", "", course)
+        self.course = re.sub(r" ?\([^)]+\)", "", course) #dont change this please !!! or anything in the sheets in terms of names or else something will break and i am NOT responsible for it!
 
 
 # base json formats
@@ -105,7 +105,7 @@ def studentCreate(students, courseStorage):  # no return => creates the student 
     return courseStorage
 
 
-def studentBlocks(courseStorage):  # no return => adds student blocks to coursestorage at the right course
+def studentBlocks(courseStorage):  # no return => adds student (blocks, maybe objects) to coursestorage at the right course
     student_page_copy = copy.deepcopy(StudentPage)
     for course in courseStorage:
         for student in course[1:]:
