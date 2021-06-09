@@ -2,7 +2,7 @@
 import copy  # copy to create deep copies of our pages so that the base files never change
 import json  # json package used to load, modify, and dump our json
 from datetime import date  # imports date formatting automatically
-
+import os
 from slack_bolt import App  # imports the app from slack that we use to connect
 
 import sheets  # sheets.py, our file that formats our sheet data
@@ -164,10 +164,19 @@ def create_modal(ack, shortcut, client):
         view_id=viewId,  # uses viewid to find the location
         view=data  # the content that we're sending to the view
     )
-
-
+@app.view("")
+def handle_view_events(ack, body, client):
+    ack()
+    print(body)
+    dict = body['view']['state']['values']['section678']['text1234']['selected_options']
+    for object in dict:
+        print(object['text']['text'])
+    res = client.views_open(
+        trigger_id= body['trigger_id'],
+        view = StudentPage
+    )
 # run server on port 3000
 if __name__ == "__main__":
     courseStorage = runStudents(courses, students)
     print(courseStorage)
-    # app.start(port=int(os.environ.get("PORT",3000)))
+    app.start(port=int(os.environ.get("PORT",3000)))
