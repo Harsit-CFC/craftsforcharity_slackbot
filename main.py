@@ -11,10 +11,13 @@ import re  # the regex stuff
 
 # json credentials
 config = json.load(open('config.json'))
-# datetime variables
 
-t = date.today()
-timestamp = t.strftime("%B %d, %Y")
+
+# datetime variables
+def timeReturn():
+    t = date.today()
+    timestamp = t.strftime("%B %d, %Y")
+    return timestamp
 
 
 # class declaration
@@ -38,7 +41,8 @@ class Applicant:
         self.student = student  # 9th index
         self.numofstudents = numofstudents  # 8th index
         self.hand = hand  # 14th index
-        self.course = re.sub(r" ?\([^)]+\)", "", course) #dont change this please !!! or anything in the sheets in terms of names or else something will break and i am NOT responsible for it!
+        self.course = re.sub(r" ?\([^)]+\)", "",
+                             course)  # dont change this please !!! or anything in the sheets in terms of names or else something will break and i am NOT responsible for it!
 
 
 # base json formats
@@ -63,6 +67,7 @@ def coursecreate(courses):  # returns a course list => get courses from list and
 
 def courseJSON(courselist):  # returns dumped json => insert courses in json format
     main_page_copy = copy.deepcopy(MainPage)
+    timestamp = timeReturn()
     main_page_copy["blocks"][1]["elements"][0]["text"] = timestamp + "  |  Crafts for Charity"
     for i in courselist:  # standard loop through list
         value = courselist.index(
@@ -80,11 +85,12 @@ def courseJSON(courselist):  # returns dumped json => insert courses in json for
 def courseFilters(courselist):  # returns nested list => creates a list for every value in courselist
     courseStorage = [[] for _ in range(len(courselist))]
     for i in courselist:
-        courseStorage[courselist.index(i)].append([i])
+        courseStorage[courselist.index(i)].append(i)
     return courseStorage
 
 
-def courseMatch(student, courselist):  # returns student.course as INTEGER => sets student course to the index of the course value
+def courseMatch(student,
+                courselist):  # returns student.course as INTEGER => sets student course to the index of the course value
     for c in courselist:
         if student.course == c:
             student.course = courselist.index(c)
@@ -105,20 +111,68 @@ def studentCreate(students, courseStorage):  # no return => creates the student 
     return courseStorage
 
 
-def studentBlocks(courseStorage):  # no return => adds student (blocks, maybe objects) to coursestorage at the right course
-    student_page_copy = copy.deepcopy(StudentPage)
+def studentBlocks(
+        courseStorage):  # no return => adds student (blocks, maybe objects) to coursestorage at the right course
     for course in courseStorage:
         for student in course[1:]:
             courseStorage[student.course].append(student)
     return courseStorage
 
 
-def runStudents(courses, students):  # no return=> runs all student-related functions to put them in the studentcopy json array
+def runStudents(courses,
+                students):  # no return=> runs all student-related functions to put them in the studentcopy json array
     courselist = coursecreate(courses)
     courseStorage = courseFilters(courselist)
     courseStorage = studentCreate(students, courseStorage)
     courseStorage = studentBlocks(courseStorage)
     return courseStorage
+
+
+def compileRequestedData(body, courseStorage):
+    timestamp = timeReturn()
+    classList = []
+    student_page_copy = copy.deepcopy(StudentPage)
+    student_page_copy["blocks"][1]["elements"][0]["text"] = timestamp + "  |  Crafts for Charity"
+    options = body['view']['state']['values']['section678']['text1234']['selected_options']
+    for text in options:
+        classList.append(text['text']['text'])
+    print(classList)
+    for list in courseStorage:
+        if list[0] in classList:
+            student_page_copy['blocks'].append({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": list[0]
+                }
+            })
+            student_page_copy['blocks'].append({
+                "type": "divider"
+            }, )
+            for student in list[1:]:
+                student_page_copy['blocks'].append({
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ""+student.student+ " ("+student.numofstudents+")"+" ("+student.hand+")"+" | `"+student.time+" "+student.date+"`"
+                    },
+                    "accessory": {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Sign Up",
+                        },
+                        "value": "sign up",
+                        "url": "https://docs.google.com/spreadsheets/d/1q4eK4VxqPZa0Bfg7rFuaKWnLQtAbAg_5wKzEE3xtQQY/edit?usp=sharing",
+                        "action_id": "button-action"
+                    }
+                }, )
+                if student == list[len(list)-1]:
+                    student_page_copy['blocks'].append({
+                        "type": "divider"
+                    },)
+    return json.dumps(student_page_copy)
+
 
 
 # Slack App
@@ -164,19 +218,22 @@ def create_modal(ack, shortcut, client):
         view_id=viewId,  # uses viewid to find the location
         view=data  # the content that we're sending to the view
     )
+
+
 @app.view("")
 def handle_view_events(ack, body, client):
     ack()
     print(body)
-    dict = body['view']['state']['values']['section678']['text1234']['selected_options']
-    for object in dict:
-        print(object['text']['text'])
+    courseStorage= runStudents(courses,students)
+    data = compileRequestedData(body,courseStorage)
     res = client.views_open(
-        trigger_id= body['trigger_id'],
-        view = StudentPage
+        trigger_id=body['trigger_id'],
+        view=data
     )
+
+
 # run server on port 3000
 if __name__ == "__main__":
     courseStorage = runStudents(courses, students)
     print(courseStorage)
-    app.start(port=int(os.environ.get("PORT",3000)))
+    app.start(port=int(os.environ.get("PORT", 3000)))
