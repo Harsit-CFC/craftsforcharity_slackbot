@@ -14,7 +14,7 @@ config = json.load(open('config.json'))
 
 
 # datetime variables
-def timeReturn():
+def timereturn():
     t = date.today()
     timestamp = t.strftime("%B %d, %Y")
     return timestamp
@@ -42,7 +42,8 @@ class Applicant:
         self.numofstudents = numofstudents  # 8th index
         self.hand = hand  # 14th index
         self.course = re.sub(r" ?\([^)]+\)", "",
-                             course)  # dont change this please !!! or anything in the sheets in terms of names or else something will break and i am NOT responsible for it!
+                             course)  # dont change this please !!! or anything in the sheets in terms of names or
+        # else something will break and i am NOT responsible for it!
 
 
 # base json formats
@@ -54,9 +55,9 @@ courses = sheets.courseinit()
 
 
 # construction functions
-def coursecreate(courses):  # returns a course list => get courses from list and adds it to a classlist
+def coursecreate(chosenCourses):  # returns a course list => get courses from list and adds it to a classlist
     courselist = []  # list made to return all courses
-    for i in courses:  # standard loop through list
+    for i in chosenCourses:  # standard loop through list
         if i == "":  # if empty then pass
             pass
         else:  # if it has content then add it to courselist
@@ -65,9 +66,9 @@ def coursecreate(courses):  # returns a course list => get courses from list and
     return courselist
 
 
-def courseJSON(courselist):  # returns dumped json => insert courses in json format
+def coursejson(courselist):  # returns dumped json => insert courses in json format
     main_page_copy = copy.deepcopy(MainPage)
-    timestamp = timeReturn()
+    timestamp = timereturn()
     main_page_copy["blocks"][1]["elements"][0]["text"] = timestamp + "  |  Crafts for Charity"
     for i in courselist:  # standard loop through list
         value = courselist.index(
@@ -82,54 +83,49 @@ def courseJSON(courselist):  # returns dumped json => insert courses in json for
     return json.dumps(main_page_copy)
 
 
-def courseFilters(courselist):  # returns nested list => creates a list for every value in courselist
-    courseStorage = [[] for _ in range(len(courselist))]
+def coursefilters(courselist):  # returns nested list => creates a list for every value in courselist
+    innerCourseStorage = [[] for _ in range(len(courselist))]
     for i in courselist:
-        courseStorage[courselist.index(i)].append(i)
-    return courseStorage
+        innerCourseStorage[courselist.index(i)].append(i)
+    return innerCourseStorage
 
 
-def courseMatch(student,
-                courselist):  # returns student.course as INTEGER => sets student course to the index of the course value
+def coursematch(student,
+                courselist):  # returns student.course as INTEGER => sets student course to the index of course value
     for c in courselist:
         if student.course == c:
             student.course = courselist.index(c)
     return student.course
 
 
-def appendStorage(student, courseStorage):  # no return => adds student to the course-specific list index
-    courseStorage[student.course].append(student)
+def appendstorage(student, innerCourseStorage):  # no return => adds student to the course-specific list index
+    innerCourseStorage[student.course].append(student)
 
 
-def studentCreate(students, courseStorage):  # no return => creates the student object for all students
+def studentcreate(innerStudents):  # no return => creates the student object for all students
     courselist = coursecreate(courses)
-    courseStorage = courseFilters(courselist)
-    for i in students:
+    innerCourseStorage = coursefilters(courselist)
+    for i in innerStudents:
         student = Applicant(i[2], i[3], i[4], i[6], i[7], i[9], i[8], i[14], i[11])
-        student.course = courseMatch(student, courselist)
-        appendStorage(student, courseStorage)
-    return courseStorage
+        student.course = coursematch(student, courselist)
+        appendstorage(student, innerCourseStorage)
+    return innerCourseStorage
 
 
-def studentBlocks(
-        courseStorage):  # no return => adds student (blocks, maybe objects) to coursestorage at the right course
-    for course in courseStorage:
-        for student in course[1:]:
-            courseStorage[student.course].append(student)
-    return courseStorage
+# does all student functions, very important
+def runstudents(innerCourses,
+                innerStudents):  # runs all student-related functions to put them in the studentcopy json array
+    courselist = coursecreate(innerCourses)
+    # probably some double variable error here in the future!!!
+    innerCourseStorage = coursefilters(courselist)
+    innerCourseStorage = studentcreate(innerStudents)
+    # courseStorage = studentBlocks(courseStorage)
+    return innerCourseStorage
 
 
-def runStudents(courses,
-                students):  # no return=> runs all student-related functions to put them in the studentcopy json array
-    courselist = coursecreate(courses)
-    courseStorage = courseFilters(courselist)
-    courseStorage = studentCreate(students, courseStorage)
-    courseStorage = studentBlocks(courseStorage)
-    return courseStorage
-
-
-def compileRequestedData(body, courseStorage):
-    timestamp = timeReturn()
+# Like in title, compiles the requested data into json using magic code
+def compilerequesteddata(body, innerCourseStorage):  # returns json object from python dictionary
+    timestamp = timereturn()
     classList = []
     student_page_copy = copy.deepcopy(StudentPage)
     student_page_copy["blocks"][1]["elements"][0]["text"] = timestamp + "  |  Crafts for Charity"
@@ -137,24 +133,25 @@ def compileRequestedData(body, courseStorage):
     for text in options:
         classList.append(text['text']['text'])
     print(classList)
-    for list in courseStorage:
-        if list[0] in classList:
+    for innerList in innerCourseStorage:
+        if innerList[0] in classList:
             student_page_copy['blocks'].append({
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": list[0]
+                    "text": "*" + innerList[0] + "*" + " :cfc:"
                 }
             })
             student_page_copy['blocks'].append({
                 "type": "divider"
             }, )
-            for student in list[1:]:
+            print(innerList[1:])
+            for student in innerList[1:]:
                 student_page_copy['blocks'].append({
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ""+student.student+ " ("+student.numofstudents+")"+" ("+student.hand+")"+" | `"+student.time+" "+student.date+"`"
+                        "text": "" + student.student + " (" + student.numofstudents + ")" + " (" + student.hand + ")" + "| `" + student.time + " " + student.date + "` "
                     },
                     "accessory": {
                         "type": "button",
@@ -167,12 +164,14 @@ def compileRequestedData(body, courseStorage):
                         "action_id": "button-action"
                     }
                 }, )
-                if student == list[len(list)-1]:
+                print(student_page_copy)
+                if student == innerList[len(innerList) - 1]:
                     student_page_copy['blocks'].append({
                         "type": "divider"
-                    },)
+                    }, )
+    print(student_page_copy)
+    print(json.dumps(student_page_copy))
     return json.dumps(student_page_copy)
-
 
 
 # Slack App
@@ -211,9 +210,9 @@ def create_modal(ack, shortcut, client):
                 }
             ]
         })
-    courses = sheets.courseinit()  # refreshes courses on every call
+    innerCourses = sheets.courseinit()  # refreshes courses on every call
     viewId = res['view']['id']  # viewid is needed to update the modal
-    data = courseJSON(coursecreate(courses))  # the data that we're sending to slack
+    data = coursejson(coursecreate(innerCourses))  # the data that we're sending to slack
     client.views_update(  # updates the default view with our new view
         view_id=viewId,  # uses viewid to find the location
         view=data  # the content that we're sending to the view
@@ -224,9 +223,8 @@ def create_modal(ack, shortcut, client):
 def handle_view_events(ack, body, client):
     ack()
     print(body)
-    courseStorage= runStudents(courses,students)
-    data = compileRequestedData(body,courseStorage)
-    res = client.views_open(
+    data = compilerequesteddata(body, courseStorage)
+    response = client.views_open(
         trigger_id=body['trigger_id'],
         view=data
     )
@@ -234,6 +232,6 @@ def handle_view_events(ack, body, client):
 
 # run server on port 3000
 if __name__ == "__main__":
-    courseStorage = runStudents(courses, students)
+    courseStorage = runstudents(courses, students)
     print(courseStorage)
     app.start(port=int(os.environ.get("PORT", 3000)))
