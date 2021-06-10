@@ -132,7 +132,6 @@ def compilerequesteddata(body, innerCourseStorage):  # returns json object from 
     options = body['view']['state']['values']['section678']['text1234']['selected_options']
     for text in options:
         classList.append(text['text']['text'])
-    print(classList)
     for innerList in innerCourseStorage:
         if innerList[0] in classList:
             student_page_copy['blocks'].append({
@@ -145,7 +144,6 @@ def compilerequesteddata(body, innerCourseStorage):  # returns json object from 
             student_page_copy['blocks'].append({
                 "type": "divider"
             }, )
-            print(innerList[1:])
             for student in innerList[1:]:
                 student_page_copy['blocks'].append({
                     "type": "section",
@@ -164,13 +162,6 @@ def compilerequesteddata(body, innerCourseStorage):  # returns json object from 
                         "action_id": "button-action"
                     }
                 }, )
-                print(student_page_copy)
-                if student == innerList[len(innerList) - 1]:
-                    student_page_copy['blocks'].append({
-                        "type": "divider"
-                    }, )
-    print(student_page_copy)
-    print(json.dumps(student_page_copy))
     return json.dumps(student_page_copy)
 
 
@@ -220,9 +211,9 @@ def create_modal(ack, shortcut, client):
 
 
 @app.view("")
-def handle_view_events(ack, body, client):
+def handle_view_events(ack, body, logger, client):
     ack()
-    print(body)
+    logger.info(body)
     data = compilerequesteddata(body, courseStorage)
     response = client.views_open(
         trigger_id=body['trigger_id'],
@@ -230,8 +221,44 @@ def handle_view_events(ack, body, client):
     )
 
 
+@app.action("text1234")
+def handle_some_action(ack, body, logger):
+    ack()
+    logger.info(body)
+
+
+@app.event("app_home_opened")
+def handle_app_home_opened_events(client, event):
+    client.views_publish(
+        # the user that opened your app's app home
+        user_id=event["user"],
+        # the view object that appears in the app home
+        view={
+            "type": "home",
+            "callback_id": "home_view",
+
+            # body of the view
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*What are you doing here?* :ghost: :face_with_cowboy_hat:"
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "No, really, there's nothing here. Check your Slack Shortcuts for what CFC Scheduler can do!"
+                    }
+                }
+            ]
+        }
+    )
+
+
 # run server on port 3000
 if __name__ == "__main__":
     courseStorage = runstudents(courses, students)
-    print(courseStorage)
     app.start(port=int(os.environ.get("PORT", 3000)))
