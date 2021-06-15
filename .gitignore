@@ -3,3 +3,7 @@
 *.pickle
 /config.json
 /credentials-sheets.json
+venv
+_pycache_
+.idea
+.vscode
