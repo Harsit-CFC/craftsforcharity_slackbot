@@ -132,6 +132,22 @@ def compilerequesteddata(body, innerCourseStorage):  # returns json object from 
     options = body['view']['state']['values']['section678']['text1234']['selected_options']
     for text in options:
         classList.append(text['text']['text'])
+    student_page_copy['blocks'].append({
+        "type": "actions",
+        "elements": [
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Sign Up"
+                },
+                "value": "click_me_123",
+                "url": "https://docs.google.com/spreadsheets/d/1q4eK4VxqPZa0Bfg7rFuaKWnLQtAbAg_5wKzEE3xtQQY/edit?usp=sharing",
+                "action_id": "actionId-0",
+                "style": "primary"
+            }
+        ]
+    })
     for innerList in innerCourseStorage:
         if innerList[0] in classList:
             student_page_copy['blocks'].append({
@@ -150,18 +166,24 @@ def compilerequesteddata(body, innerCourseStorage):  # returns json object from 
                     "text": {
                         "type": "mrkdwn",
                         "text": "" + student.student + " (" + student.numofstudents + ")" + " (" + student.hand + ")" + "| `" + student.time + " " + student.date + "` "
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Sign Up",
-                        },
-                        "value": "sign up",
-                        "url": "https://docs.google.com/spreadsheets/d/1q4eK4VxqPZa0Bfg7rFuaKWnLQtAbAg_5wKzEE3xtQQY/edit?usp=sharing",
-                        "action_id": "button-action"
                     }
                 }, )
+    student_page_copy['blocks'].append({
+        "type": "actions",
+        "elements": [
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Sign Up"
+                },
+                "value": "click_me_123",
+                "url": "https://docs.google.com/spreadsheets/d/1q4eK4VxqPZa0Bfg7rFuaKWnLQtAbAg_5wKzEE3xtQQY/edit?usp=sharing",
+                "action_id": "actionId-0",
+                "style": "primary"
+            }
+        ]
+    })
     return json.dumps(student_page_copy)
 
 
