@@ -280,7 +280,7 @@ def handle_app_home_opened_events(client, event):
     )
 
 
-# run server on port 3000
+# run server on port 80
 if __name__ == "__main__":
     courseStorage = runstudents(courses, students)
     app.start(port=int(os.environ.get("PORT", 80)))
