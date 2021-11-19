@@ -51,7 +51,7 @@ MainPage = json.load(open('mainpage.json'))
 StudentPage = json.load(open('studentpage.json'))
 # spreadsheet variables
 students = sheets.sheetinit()
-courses = sheets.courseinit()
+#This line has been commented out! courses = sheets.courseinit()
 
 
 # construction functions
